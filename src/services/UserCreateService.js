@@ -1,8 +1,13 @@
-class UserCreateService {
-  async execute({ name, email, password }) {
-    const userRepository = new UserRepository();
+const { hash, compare } = require("bcryptjs");
+const AppError = require("../utils/AppError");
 
-    const checkUserExists = await userRepository.findByEmail(email);
+class UserCreateService {
+  constructor(userRepository){
+    this.userRepository = userRepository;
+  }
+
+  async execute({ name, email, password }) {
+    const checkUserExists = await this.userRepository.findByEmail(email);
 
     if (checkUserExists) {
       throw new AppError("Este e-mail já está em uso.");
@@ -10,9 +15,8 @@ class UserCreateService {
 
     const hashedPassword = await hash(password, 8);
 
-    await userRepository.create({ name, email, password: hashedPassword });
+    await this.userRepository.create({ name, email, password: hashedPassword });
   }
-
 }
 
 module.exports = UserCreateService;
